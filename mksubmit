@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+if [ $# -lt 2 ]; then
+    echo "usage: $0 N_node N_task"
+    exit 0
+fi
+echo "There are 1320 = 2 x 2 x 2 x 3 x 5 x 11 blocks"
+#echo "There are 9384 = 2 x 2 x 2 x 3 x 17 x 23 blocks"
+
+t=$(expr $1 '*' $2)
+echo "Using $1 nodes x $2 tasks = $t cores in total"
+
+if [ $t -gt 1320 ]; then
+    echo "Too many cores; no job is generated"
+    exit 1
+elif [ $(expr 1320 % $t) -ne 0 ]; then
+    echo "Number of blocks is not a multiplier of number of cores; inefficient"
+fi
+
+mkdir "test_$t=$1x$2/"
+
+cat > "test_$t=$1x$2/submit" <<EOF
+#!/usr/bin/env bash
+
+#SBATCH --partition=normal
+#SBATCH --nodes=$1
+#SBATCH --ntasks-per-node=$2
+#SBATCH --time=600
+#SBATCH --account=AST20017
+#SBATCH --job-name=test-$1x$2
+#SBATCH --output=athoutput
+
+module load impi phdf5
+
+ibrun ../athena/bin/athena -i ../athinput.fm_torus
+EOF
+
+chmod 755 "test_$t=$1x$2/submit"
