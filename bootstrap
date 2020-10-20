@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [ -d athena ]; then
+    pushd athena
+    git pull
+else
+    git clone https://github.com/PrincetonUniversity/athena-public-version athena
+    pushd athena
+    ./configure.py -gtb --prob gr_torus --coord kerr-schild --flux hlle -mpi -hdf5
+fi
+
+make clean
+make -j 4
+
+popd
